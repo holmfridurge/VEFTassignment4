@@ -34,21 +34,58 @@ namespace CoursesAPI.Services.Services
 		/// <returns>Should return basic information about the person.</returns>
 		public PersonDTO AddTeacherToCourse(int courseInstanceID, AddTeacherViewModel model)
 		{
-			// TODO: implement this logic!
+			// does the course exist
+			var course = (from c in _courseInstances.All()
+							where c.ID == courseInstanceID
+							select c).SingleOrDefault();
+			if(course == null)
+			{
+				throw new AppObjectNotFoundException();
+			}
+
+			// Does the person exist
 			var person = (from c in _persons.All()
 							where c.SSN == model.SSN
 							select new PersonDTO {
 								SSN = c.SSN,
 								Name = c.Name
 							}).SingleOrDefault();
-			var teacher = (from c in _persons.All()
-							where c.SSN == model.SSN
-							select new TeacherRegistration {
-								SSN = c.SSN,
-								CourseInstanceID = courseInstanceID,
-								Type = model.Type
-							}).SingleOrDefault();
-			_teacherRegistrations.Add(teacher);
+			if(person == null)
+			{
+				throw new AppObjectNotFoundException();
+			}
+
+			// is there a MainTeacher in course
+			int mainTeacher = (from c in _teacherRegistrations.All()
+								where c.CourseInstanceID == courseInstanceID
+								select c).Count();
+			if(model.Type == TeacherType.MainTeacher && mainTeacher == 1)
+			{
+				throw new AppValidationException("COURSE_ALREADY_HAS_A_MAIN_TEACHER");
+			}
+
+			// Is the teacher already assigned to course
+			var registration = (from c in _teacherRegistrations.All()
+								where c.SSN == model.SSN
+								&& c.CourseInstanceID == courseInstanceID
+								select c).SingleOrDefault();
+			if(registration != null && model.Type == TeacherType.AssistantTeacher)
+			{
+				throw new AppValidationException("PERSON_ALREADY_REGISTERED_TEACHER_IN_COURSE");
+			}
+			else
+			{
+				var teacher = (from c in _persons.All()
+								where c.SSN == model.SSN
+								select new TeacherRegistration {
+									SSN = c.SSN,
+									CourseInstanceID = courseInstanceID,
+									Type = model.Type
+								}).SingleOrDefault();
+				_teacherRegistrations.Add(teacher);
+				_uow.Save();
+			}
+			
 			return person;
 		}
 
