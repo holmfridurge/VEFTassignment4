@@ -115,12 +115,85 @@ namespace CoursesAPI.Tests.Services
 		public void GetCoursesBySemester_ReturnsEmptyListWhenNoDataDefined()
 		{
 			// Arrange:
+			var emptyList = new List<CourseInstance>{};
+			_mockUnitOfWork.SetRepositoryData(emptyList);
 
 			// Act:
+			var obj = _service.GetCourseInstancesBySemester();
 
 			// Assert:
-			// Assert.True(true);
+			Assert.Equal(obj.Count, 0);
 		}
+
+		/// <summary>
+		/// (10%) If no semester is defined, it should return all courses for the semester 20153
+		/// </summary>
+		[Fact]
+		public void GetCoursesBySemester_WithNoSemesterDefined()
+		{
+			// Arrange:
+
+			// Act:
+			var obj = _service.GetCourseInstancesBySemester();
+			
+			// Assert:
+			Assert.Single(obj);
+			Assert.Equal(COURSEID_VEFT_20153, obj[0].CourseInstanceID);
+		}
+
+		/// <summary>
+		/// (10%) The function should return all courses on a given semester (no more, no less!)
+		/// </summary>
+		[Fact]
+		public void GetCoursesBySemester_WithSpecificSemesterGiven()
+		{
+			// Arrange:
+
+			// Act:
+			var obj = _service.GetCourseInstancesBySemester("20163");
+
+			// Assert:
+			Assert.Single(obj);
+			Assert.Equal(COURSEID_VEFT_20163, obj[0].CourseInstanceID);
+		}
+
+		/// <summary>
+		/// (10%) For each course returned, the name of the main teacher of the course 
+		/// should be included (see the definition of CourseInstanceDTO).
+		/// </summary>
+		[Fact]
+		public void GetCoursesBySemester_WithMainTeacher()
+		{
+			// Arrange:
+
+			// Act:
+			var obj = _service.GetCourseInstancesBySemester();
+
+			// Assert:
+			Assert.Single(obj);
+			Assert.Equal(COURSEID_VEFT_20153, obj[0].CourseInstanceID);
+			Assert.Equal("Daníel B. Sigurgeirsson", obj[0].MainTeacher);
+
+		}
+
+		/// <summary>
+		/// (10%) If the main teacher hasn't been defined, 
+		/// the name of the main teacher should be returned as an empty string.
+		/// </summary>
+		[Fact]
+		public void GetCoursesBySemester_WithNoMainTeacher()
+		{
+			// Arrange:
+
+			// Act:
+			var obj = _service.GetCourseInstancesBySemester("20163");
+
+			// Assert:
+			Assert.Single(obj);
+			Assert.Equal(COURSEID_VEFT_20163, obj[0].CourseInstanceID);
+			Assert.Equal("", obj[0].MainTeacher);
+		}
+
 
 		// TODO!!! you should write more unit tests here!!!
 
@@ -170,7 +243,7 @@ namespace CoursesAPI.Tests.Services
 		}
 
 		[Fact]
-//		[ExpectedException(typeof(AppObjectNotFoundException))]
+		// [ExpectedException(typeof(AppObjectNotFoundException))]
 		public void AddTeacher_InvalidCourse()
 		{
 			// Arrange:
@@ -190,7 +263,7 @@ namespace CoursesAPI.Tests.Services
 		/// when that person is not registered in the system.
 		/// </summary>
 		[Fact]
-//		[ExpectedException(typeof (AppObjectNotFoundException))]
+		// [ExpectedException(typeof (AppObjectNotFoundException))]
 		public void AddTeacher_InvalidTeacher()
 		{
 			// Arrange:
