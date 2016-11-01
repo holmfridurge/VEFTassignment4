@@ -105,10 +105,7 @@ namespace CoursesAPI.Services.Services
 
 			var courses = (from c in _courseInstances.All()
 				join ct in _courseTemplates.All() on c.CourseID equals ct.CourseID
-				//join tr in _teacherRegistrations.All() on c.ID equals tr.CourseInstanceID
-				//join p in _persons.All() on tr.SSN equals p.SSN
 				where c.SemesterID == semester
-				//&& tr.Type == TeacherType.MainTeacher
 				select new CourseInstanceDTO
 				{
 					Name               = ct.Name,
@@ -116,7 +113,7 @@ namespace CoursesAPI.Services.Services
 					CourseInstanceID   = c.ID,
 					MainTeacher        = "" // Hint: it should not always return an empty string!
 				}).ToList();
-
+			
 			return courses;
 		}
 	}
